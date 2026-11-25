@@ -24,26 +24,38 @@ export default async function MatchPage({ params }: PageProps<'/matches/[id]'>) 
 
   const homeName = game.isHome ? teamName : game.opponent
   const awayName = game.isHome ? game.opponent : teamName
+  const homeLogo = game.isHome ? (team?.logoUrl ?? null) : null
+  const awayLogo = game.isHome ? null : (team?.logoUrl ?? null)
   const hasScore = game.homeScore !== null && game.awayScore !== null
   const teams = [
-    { name: homeName, ours: game.isHome, score: game.homeScore },
-    { name: awayName, ours: !game.isHome, score: game.awayScore },
+    { name: homeName, ours: game.isHome, score: game.homeScore, logoUrl: homeLogo },
+    { name: awayName, ours: !game.isHome, score: game.awayScore, logoUrl: awayLogo },
   ]
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-      <div className="rounded-lg border p-8 text-center">
-        <div className="grid grid-cols-2 gap-4">
+      <div className="rounded-lg border p-10">
+        <div className="space-y-6">
           {teams.map((t) => (
-            <div key={t.name}>
-              <div className={t.ours ? 'font-bold' : undefined}>{t.name}</div>
-              <div className="font-mono text-lg">
+            <div key={t.name} className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4 min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={t.logoUrl ?? '/crest-placeholder.svg'}
+                  alt={t.logoUrl ? t.name : ''}
+                  className="h-14 w-14 shrink-0 object-contain"
+                />
+                <div className={`truncate text-2xl ${t.ours ? 'font-bold' : 'font-semibold'}`}>
+                  {t.name}
+                </div>
+              </div>
+              <div className="font-mono text-3xl shrink-0">
                 {hasScore ? t.score : '–'}
               </div>
             </div>
           ))}
         </div>
-        <p className="text-sm text-zinc-500 mt-4">
+        <p className="mt-8 text-center text-lg text-zinc-500">
           {formatDate(game.date)}
           {game.venue ? ` · ${game.venue}` : ''}
         </p>
