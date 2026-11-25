@@ -51,30 +51,30 @@ export default function GameList({
               href={`/matches/${g.id}`}
               className="block px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={home.logoUrl ?? '/crest-placeholder.svg'}
-                    alt={home.logoUrl ? home.name : ''}
-                    className="h-8 w-8 shrink-0 object-contain"
-                  />
-                  <span className={`truncate ${home.ours ? 'font-bold' : ''}`}>
-                    {home.name}
-                  </span>
-                  <span className="font-mono">{hasScore ? home.score : '–'}</span>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <div className="flex items-center justify-center gap-2">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={home.logoUrl ?? '/crest-placeholder.svg'}
+                      alt={home.logoUrl ? home.name : ''}
+                      className="h-8 w-8 shrink-0 object-contain"
+                    />
+                    <span className={home.ours ? 'font-bold' : undefined}>{home.name}</span>
+                  </div>
+                  <div className="font-mono">{hasScore ? home.score : '–'}</div>
                 </div>
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-mono">{hasScore ? away.score : '–'}</span>
-                  <span className={`truncate ${away.ours ? 'font-bold' : ''}`}>
-                    {away.name}
-                  </span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={away.logoUrl ?? '/crest-placeholder.svg'}
-                    alt={away.logoUrl ? away.name : ''}
-                    className="h-8 w-8 shrink-0 object-contain"
-                  />
+                <div>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className={away.ours ? 'font-bold' : undefined}>{away.name}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={away.logoUrl ?? '/crest-placeholder.svg'}
+                      alt={away.logoUrl ? away.name : ''}
+                      className="h-8 w-8 shrink-0 object-contain"
+                    />
+                  </div>
+                  <div className="font-mono">{hasScore ? away.score : '–'}</div>
                 </div>
               </div>
               <div className="mt-1 text-sm text-zinc-500">
