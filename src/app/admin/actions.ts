@@ -174,6 +174,7 @@ export async function updateTeamSettings(formData: FormData) {
   const name = String(formData.get('name') ?? '').trim()
   const logoRaw = String(formData.get('logoUrl') ?? '').trim()
   const homeVenue = String(formData.get('homeVenue') ?? '').trim()
+  const venueScope = String(formData.get('venueScope') ?? '')
   if (!name) redirect('/admin?error=' + encodeURIComponent('Team name is required'))
   if (logoRaw !== '' && !/^(https?:\/\/|\/)/.test(logoRaw)) {
     redirect('/admin?error=' + encodeURIComponent('Logo URL must be a web address or site path'))
@@ -192,6 +193,12 @@ export async function updateTeamSettings(formData: FormData) {
       homeVenue: homeVenue === '' ? null : homeVenue,
     },
   })
+  if (venueScope === 'all' && homeVenue !== '') {
+    await prisma.$executeRaw`
+      UPDATE "Game" SET "venue" = ${homeVenue}, "updatedAt" = ${Date.now()}
+      WHERE "isHome" = 1
+    `
+  }
   redirect('/admin?saved=1')
 }
 

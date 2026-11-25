@@ -1,10 +1,9 @@
 import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import { updateTeamSettings } from '../actions'
+import TeamSettingsForm from '@/components/TeamSettingsForm'
 
 export const dynamic = 'force-dynamic'
-
-const inputClass = 'rounded border px-3 py-2 dark:bg-zinc-900'
 
 function formatDate(date: Date) {
   return date.toLocaleDateString('en-GB', {
@@ -41,46 +40,12 @@ export default async function AdminPage({ searchParams }: PageProps<'/admin'>) {
 
       <section className="mb-10 max-w-md rounded-lg border p-4">
         <h2 className="text-lg font-semibold mb-3">Team settings</h2>
-        <form action={updateTeamSettings} className="flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Team name
-            <input
-              name="name"
-              type="text"
-              required
-              defaultValue={team?.name ?? ''}
-              className={inputClass}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Logo URL
-            <input
-              name="logoUrl"
-              type="text"
-              defaultValue={team?.logoUrl ?? ''}
-              placeholder="https://… or /logo.png"
-              className={inputClass}
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Home venue
-            <input
-              name="homeVenue"
-              type="text"
-              defaultValue={team?.homeVenue ?? ''}
-              placeholder="Default venue for home games"
-              className={inputClass}
-            />
-          </label>
-          <div>
-            <button
-              type="submit"
-              className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              Save team settings
-            </button>
-          </div>
-        </form>
+        <TeamSettingsForm
+          action={updateTeamSettings}
+          initialName={team?.name ?? ''}
+          initialLogoUrl={team?.logoUrl ?? ''}
+          initialHomeVenue={team?.homeVenue ?? ''}
+        />
       </section>
 
       {games.length === 0 ? (
