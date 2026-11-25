@@ -37,8 +37,8 @@ export default function GameList({
         const homeName = g.isHome ? teamName : g.opponent
         const awayName = g.isHome ? g.opponent : teamName
         const teams = [
-          { name: awayName, ours: !g.isHome, score: g.awayScore },
           { name: homeName, ours: g.isHome, score: g.homeScore },
+          { name: awayName, ours: !g.isHome, score: g.awayScore },
         ]
         return (
           <li key={g.id}>

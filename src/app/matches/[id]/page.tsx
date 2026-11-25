@@ -26,8 +26,8 @@ export default async function MatchPage({ params }: PageProps<'/matches/[id]'>) 
   const awayName = game.isHome ? game.opponent : teamName
   const hasScore = game.homeScore !== null && game.awayScore !== null
   const teams = [
-    { name: awayName, ours: !game.isHome, score: game.awayScore },
     { name: homeName, ours: game.isHome, score: game.homeScore },
+    { name: awayName, ours: !game.isHome, score: game.awayScore },
   ]
 
   return (
