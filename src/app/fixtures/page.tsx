@@ -14,7 +14,7 @@ export default async function FixturesPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <h1 className="text-2xl font-bold mb-6">All fixtures</h1>
-      <GameList games={games} teamName={team?.name ?? 'Us'} />
+      <GameList games={games} teamName={team?.name ?? 'Us'} teamLogoUrl={team?.logoUrl} />
       <p className="mt-8">
         <Link href="/" className="text-sm text-blue-600 hover:underline">
           &larr; Back to homepage
