@@ -30,6 +30,7 @@ export default async function EditGamePage({
       <GameForm
         action={updateGame}
         game={game}
+        defaultVenue={team?.homeVenue ?? ''}
         error={typeof error === 'string' ? error : undefined}
       />
 

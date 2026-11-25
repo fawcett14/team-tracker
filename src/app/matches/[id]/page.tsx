@@ -25,22 +25,28 @@ export default async function MatchPage({ params }: PageProps<'/matches/[id]'>) 
   const homeName = game.isHome ? teamName : game.opponent
   const awayName = game.isHome ? game.opponent : teamName
   const hasScore = game.homeScore !== null && game.awayScore !== null
+  const teams = [
+    { name: awayName, ours: !game.isHome, score: game.awayScore },
+    { name: homeName, ours: game.isHome, score: game.homeScore },
+  ]
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
       <div className="rounded-lg border p-8 text-center">
-        {hasScore ? (
-          <h1 className="text-2xl font-bold">
-            {homeName} {game.homeScore} - {game.awayScore} {awayName}
-          </h1>
-        ) : (
-          <>
-            <h1 className="text-2xl font-bold">{homeName}</h1>
-            <p className="text-zinc-500 my-4">vs</p>
-            <h2 className="text-2xl font-bold mt-2">{awayName}</h2>
-          </>
-        )}
-        <p className="text-xs text-zinc-500 mt-4">{formatDate(game.date)}</p>
+        <div className="grid grid-cols-2 gap-4">
+          {teams.map((t) => (
+            <div key={t.name}>
+              <div className={t.ours ? 'font-bold' : undefined}>{t.name}</div>
+              <div className="font-mono text-lg">
+                {hasScore ? t.score : '–'}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-zinc-500 mt-4">
+          {formatDate(game.date)}
+          {game.venue ? ` · ${game.venue}` : ''}
+        </p>
       </div>
 
       {game.videoUrl && (

@@ -62,6 +62,16 @@ export default async function AdminPage({ searchParams }: PageProps<'/admin'>) {
               className={inputClass}
             />
           </label>
+          <label className="flex flex-col gap-1 text-sm">
+            Home venue
+            <input
+              name="homeVenue"
+              type="text"
+              defaultValue={team?.homeVenue ?? ''}
+              placeholder="Default venue for home games"
+              className={inputClass}
+            />
+          </label>
           <div>
             <button
               type="submit"

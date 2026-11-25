@@ -69,7 +69,7 @@ export default async function Home() {
         {recent.length === 0 ? (
           <p className="text-zinc-500">No games played yet.</p>
         ) : (
-          <GameList games={recent} teamName={teamName} showScores />
+          <GameList games={recent} teamName={teamName} />
         )}
       </section>
 
@@ -83,7 +83,7 @@ export default async function Home() {
         {upcoming.length === 0 ? (
           <p className="text-zinc-500">No upcoming games.</p>
         ) : (
-          <GameList games={upcoming} teamName={teamName} showScores={false} />
+          <GameList games={upcoming} teamName={teamName} />
         )}
       </section>
     </main>

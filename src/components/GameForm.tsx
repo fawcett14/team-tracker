@@ -1,3 +1,7 @@
+'use client'
+
+import { useState } from 'react'
+
 type GameFormProps = {
   action: (formData: FormData) => Promise<void>
   game?: {
@@ -8,16 +12,27 @@ type GameFormProps = {
     homeScore: number | null
     awayScore: number | null
     videoUrl: string | null
+    venue: string | null
   }
+  defaultVenue?: string | null
   error?: string
 }
 
 const inputClass = 'rounded border px-3 py-2 dark:bg-zinc-900'
 
-export default function GameForm({ action, game, error }: GameFormProps) {
+export default function GameForm({ action, game, defaultVenue, error }: GameFormProps) {
+  const [isHome, setIsHome] = useState(game?.isHome ?? true)
+  const [venue, setVenue] = useState(game?.venue ?? '')
+  const [venueEdited, setVenueEdited] = useState(false)
+
   const dateValue = game
     ? game.date.toISOString().slice(0, 10)
     : ''
+
+  // On the new-game form, home games show the team home venue until the admin
+  // types their own value. Edit forms always show the stored venue.
+  const venueValue =
+    !game && isHome && !venueEdited ? defaultVenue ?? '' : venue
 
   return (
     <form action={action} className="flex max-w-md flex-col gap-4">
@@ -49,10 +64,26 @@ export default function GameForm({ action, game, error }: GameFormProps) {
         <input
           name="isHome"
           type="checkbox"
-          defaultChecked={game?.isHome ?? true}
+          checked={isHome}
+          onChange={(e) => setIsHome(e.target.checked)}
           className="h-4 w-4"
         />
         Our team is home
+      </label>
+
+      <label className="flex flex-col gap-1 text-sm">
+        Venue
+        <input
+          name="venue"
+          type="text"
+          value={venueValue}
+          onChange={(e) => {
+            setVenue(e.target.value)
+            setVenueEdited(true)
+          }}
+          placeholder={isHome ? 'Home venue' : 'Venue (optional)'}
+          className={inputClass}
+        />
       </label>
 
       <div className="grid grid-cols-2 gap-4">

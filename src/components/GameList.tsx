@@ -16,16 +16,15 @@ type GameListItem = {
   isHome: boolean
   homeScore: number | null
   awayScore: number | null
+  venue: string | null
 }
 
 export default function GameList({
   games,
   teamName,
-  showScores,
 }: {
   games: GameListItem[]
   teamName: string
-  showScores: boolean
 }) {
   if (games.length === 0) {
     return <p className="text-zinc-500">No games to show.</p>
@@ -34,25 +33,33 @@ export default function GameList({
   return (
     <ul className="divide-y rounded-lg border">
       {games.map((g) => {
-        const matchup = g.isHome
-          ? `${teamName} vs ${g.opponent}`
-          : `${g.opponent} vs ${teamName}`
-        const ours = g.isHome ? g.homeScore : g.awayScore
-        const theirs = g.isHome ? g.awayScore : g.homeScore
         const hasScore = g.homeScore !== null && g.awayScore !== null
+        const homeName = g.isHome ? teamName : g.opponent
+        const awayName = g.isHome ? g.opponent : teamName
+        const teams = [
+          { name: awayName, ours: !g.isHome, score: g.awayScore },
+          { name: homeName, ours: g.isHome, score: g.homeScore },
+        ]
         return (
           <li key={g.id}>
             <Link
               href={`/matches/${g.id}`}
-              className="flex items-center justify-between px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+              className="block px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900"
             >
-              <span>{matchup}</span>
-              {showScores && hasScore && (
-                <span className="font-mono">
-                  {ours} - {theirs}
-                </span>
-              )}
-              <span className="text-sm text-zinc-500">{formatDate(g.date)}</span>
+              <div className="grid grid-cols-2 gap-4 text-center">
+                {teams.map((t) => (
+                  <div key={t.name}>
+                    <div className={t.ours ? 'font-bold' : undefined}>{t.name}</div>
+                    <div className="font-mono text-lg">
+                      {hasScore ? t.score : '–'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-1 text-sm text-zinc-500">
+                {formatDate(g.date)}
+                {g.venue ? ` · ${g.venue}` : ''}
+              </div>
             </Link>
           </li>
         )

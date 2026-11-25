@@ -55,17 +55,19 @@ type ParsedGame =
         homeScore: number | null
         awayScore: number | null
         videoUrl: string | null
+        venue: string | null
       }
     }
   | { error: string }
 
-function parseGameForm(formData: FormData): ParsedGame {
+async function parseGameForm(formData: FormData): Promise<ParsedGame> {
   const dateRaw = String(formData.get('date') ?? '')
   const opponent = String(formData.get('opponent') ?? '').trim()
   const isHome = formData.get('isHome') === 'on'
   const homeScore = parseScore(formData.get('homeScore'))
   const awayScore = parseScore(formData.get('awayScore'))
   const videoRaw = String(formData.get('videoUrl') ?? '').trim()
+  const venue = String(formData.get('venue') ?? '').trim() || null
 
   if (!dateRaw || !opponent) return { error: 'Date and opponent are required' }
   if (homeScore === 'invalid' || awayScore === 'invalid') {
@@ -82,6 +84,15 @@ function parseGameForm(formData: FormData): ParsedGame {
   const date = new Date(`${dateRaw}T12:00:00.000Z`)
   if (Number.isNaN(date.getTime())) return { error: 'Invalid date' }
 
+  let resolvedVenue = venue
+  if (isHome && resolvedVenue === null) {
+    const team = await prisma.team.findUnique({
+      where: { id: 1 },
+      select: { homeVenue: true },
+    })
+    resolvedVenue = team?.homeVenue ?? null
+  }
+
   return {
     data: {
       date,
@@ -90,33 +101,71 @@ function parseGameForm(formData: FormData): ParsedGame {
       homeScore,
       awayScore,
       videoUrl,
+      venue: resolvedVenue,
     },
+  }
+}
+
+// Game datetimes must be stored as epoch-millisecond integers: native Prisma
+// on SQLite uses that format, but @prisma/adapter-d1 serializes DateTime args
+// as ISO strings, which the query engine cannot read back from a column that
+// also contains integers (P2023 "inconsistent column data"). Raw SQL with ms
+// ints keeps prod D1 consistent regardless of which runtime wrote the row.
+function gameValues(d: {
+  date: Date
+  opponent: string
+  isHome: boolean
+  homeScore: number | null
+  awayScore: number | null
+  videoUrl: string | null
+  venue: string | null
+}) {
+  return {
+    date: d.date.getTime(),
+    opponent: d.opponent,
+    isHome: d.isHome ? 1 : 0,
+    homeScore: d.homeScore,
+    awayScore: d.awayScore,
+    videoUrl: d.videoUrl,
+    venue: d.venue,
   }
 }
 
 export async function createGame(formData: FormData) {
   await requireAdmin()
-  const result = parseGameForm(formData)
+  const result = await parseGameForm(formData)
   if ('error' in result) redirect(`/admin/games/new?error=${encodeURIComponent(result.error)}`)
-  await prisma.game.create({ data: result.data })
+  const d = gameValues(result.data)
+  const now = Date.now()
+  await prisma.$executeRaw`
+    INSERT INTO "Game" ("date", "opponent", "isHome", "homeScore", "awayScore", "videoUrl", "venue", "createdAt", "updatedAt")
+    VALUES (${d.date}, ${d.opponent}, ${d.isHome}, ${d.homeScore}, ${d.awayScore}, ${d.videoUrl}, ${d.venue}, ${now}, ${now})
+  `
   redirect('/admin')
 }
 
 export async function updateGame(formData: FormData) {
   await requireAdmin()
   const id = Number(formData.get('id'))
-  const result = parseGameForm(formData)
+  const result = await parseGameForm(formData)
   if ('error' in result) {
     redirect(`/admin/games/${id}?error=${encodeURIComponent(result.error)}`)
   }
-  await prisma.game.update({ where: { id }, data: result.data })
+  const d = gameValues(result.data)
+  await prisma.$executeRaw`
+    UPDATE "Game"
+    SET "date" = ${d.date}, "opponent" = ${d.opponent}, "isHome" = ${d.isHome},
+        "homeScore" = ${d.homeScore}, "awayScore" = ${d.awayScore}, "videoUrl" = ${d.videoUrl},
+        "venue" = ${d.venue}, "updatedAt" = ${Date.now()}
+    WHERE id = ${id}
+  `
   redirect('/admin')
 }
 
 export async function deleteGame(formData: FormData) {
   await requireAdmin()
   const id = Number(formData.get('id'))
-  await prisma.game.delete({ where: { id } })
+  await prisma.$executeRaw`DELETE FROM "Game" WHERE id = ${id}`
   redirect('/admin')
 }
 
@@ -124,14 +173,24 @@ export async function updateTeamSettings(formData: FormData) {
   await requireAdmin()
   const name = String(formData.get('name') ?? '').trim()
   const logoRaw = String(formData.get('logoUrl') ?? '').trim()
+  const homeVenue = String(formData.get('homeVenue') ?? '').trim()
   if (!name) redirect('/admin?error=' + encodeURIComponent('Team name is required'))
   if (logoRaw !== '' && !/^(https?:\/\/|\/)/.test(logoRaw)) {
     redirect('/admin?error=' + encodeURIComponent('Logo URL must be a web address or site path'))
   }
   await prisma.team.upsert({
     where: { id: 1 },
-    update: { name, logoUrl: logoRaw === '' ? null : logoRaw },
-    create: { id: 1, name, logoUrl: logoRaw === '' ? null : logoRaw },
+    update: {
+      name,
+      logoUrl: logoRaw === '' ? null : logoRaw,
+      homeVenue: homeVenue === '' ? null : homeVenue,
+    },
+    create: {
+      id: 1,
+      name,
+      logoUrl: logoRaw === '' ? null : logoRaw,
+      homeVenue: homeVenue === '' ? null : homeVenue,
+    },
   })
   redirect('/admin?saved=1')
 }
